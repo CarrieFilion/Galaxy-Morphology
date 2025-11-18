@@ -16,6 +16,14 @@ Applying the methods outlined in [`HowTo.ipynb`](SGA_catalogue/HowTo.ipynb) and 
 
 
 
+The repository is sectioned as follows:
+[`Notebooks` ](notebooks/) folder contains ipynb files which were used in analysis during the project
+[`SGA_catalogue`](SGA_catalogue) folder contains intstructions and sample data for reproducible results comparible to those which are published
+[`PlotsPaepr`](PlotsPaper) folder contains the relevant plots for the paper
+[`PaperPlots`](PaperPlots.ipynb) file contains instructions on producing the small sample analysis and disc generation
+[`src`](src) folder contains the `galaxymorphology` function
+
+
 ---
 
 ## Features
