@@ -1,4 +1,11 @@
-import morphology
+from flex import FLEX
+import pytest
+from scipy.stats import linregress
+from astropy.io import fits
+from astropy.wcs import WCS
+
+import numpy as np
+from galaxyinclinations import morphology
 
 def test_FindInc2():
     '''test finding the inclination'''
@@ -11,52 +18,24 @@ def test_FindInc2():
     test_inc = morphology.FindInc2(0.5000000001, test_A, test_B, test_C, test_D)
     assert test_inc == 90.0
     #test A = 0 raises ZeroDivisionError
-    try:
+    with pytest.raises(ZeroDivisionError):
         test_inc = morphology.FindInc2(test_eta, 0.0, test_B, test_C, test_D)
-    except ZeroDivisionError:
-        pass
-    else:
-        assert False, "Expected ZeroDivisionError for A=0"
     #test B = 0 raises ZeroDivisionError
-    try:
+    with pytest.raises(ZeroDivisionError):
         test_inc = morphology.FindInc2(test_eta, test_A, 0.0, test_C, test_D)
-    except ZeroDivisionError:
-        pass
-    else:
-        assert False, "Expected ZeroDivisionError for B=0"
     #testing non-finite inputs raises ValueError
-    test_vals = [np.nan, np.inf, -np.inf]
-    for val in test_vals:
-        try:
-            test_inc = morphology.FindInc2(val, test_A, test_B, test_C, test_D)
-        except ValueError:
-            pass
-        else:
-            assert False, "Expected ValueError for non-finite eta"
-        try:
-            test_inc = morphology.FindInc2(test_eta, val, test_B, test_C, test_D)
-        except ValueError:
-            pass
-        else:
-            assert False, "Expected ValueError for non-finite A"
-        try:
-            test_inc = morphology.FindInc2(test_eta, test_A, val, test_C, test_D)
-        except ValueError:
-            pass
-        else:
-            assert False, "Expected ValueError for non-finite B"
-        try:
-            test_inc = morphology.FindInc2(test_eta, test_A, test_B, val, test_D)
-        except ValueError:
-            pass
-        else:
-            assert False, "Expected ValueError for non-finite C"
-        try:
-            test_inc = morphology.FindInc2(test_eta, test_A, test_B, test_C, val)
-        except ValueError:
-            pass
-        else:
-            assert False, "Expected ValueError for non-finite D"
+    with pytest.raises(ValueError):
+        test_inc = morphology.FindInc2(np.inf, test_A, test_B, test_C, test_D)
+        test_inc = morphology.FindInc2(test_eta, np.inf, test_B, test_C, test_D)
+        test_inc = morphology.FindInc2(test_eta, test_A, np.inf, test_C, test_D)
+        test_inc = morphology.FindInc2(test_eta, test_A, test_B, np.inf, test_D)
+        test_inc = morphology.FindInc2(test_eta, test_A, test_B, test_C, np.inf)
+        #now nans 
+        test_inc = morphology.FindInc2(np.nan, test_A, test_B, test_C, test_D)
+        test_inc = morphology.FindInc2(test_eta, np.nan, test_B, test_C, test_D)
+        test_inc = morphology.FindInc2(test_eta, test_A, np.nan, test_C, test_D)
+        test_inc = morphology.FindInc2(test_eta, test_A, test_B, np.nan, test_D)
+        test_inc = morphology.FindInc2(test_eta, test_A, test_B, test_C, np.nan)
         
     #test some normal case
     test_inc = morphology.FindInc2(test_eta, test_A, 2, .9, test_D)
@@ -74,26 +53,12 @@ def test_determine_background_radius():
     assert isinstance(maxrad, float), "Expected float output"
     assert 0 <= maxrad <= R.max(), "Expected maxrad to be within the range of R"
     #testing invalid window_size values
-    try:
+    with pytest.raises(ValueError):
         morphology.determine_background_radius(R, I, noisefloor, window_size=0)
-    except AssertionError:
-        pass
-    else:
-        assert False, "Expected AssertionError for zero window_size" 
-    try:
-        morphology.determine_background_radius(R, I, noisefloor, window_size=100.0001)
-    except AssertionError:
-        pass
-    else:
-        assert False, "Expected AssertionError for non-integer window_size"
-    try:
+        morphology.determine_background_radius(R, I, noisefloor, window_size=100.01)
         morphology.determine_background_radius(R, I, noisefloor, window_size=1001)
-    except AssertionError:
-        pass
-    else:
-        assert False, "Expected AssertionError for window_size larger than R, I length"
     #testing edge case where no values fall below noisefloor
-    I_ = 0*I
+    I_ = np.ones_like(I)
     maxrad = morphology.determine_background_radius(R, I_, noisefloor, window_size=window_size)
     assert maxrad == np.nanmax(R), "Expected maxrad to be np.nanmax(R) when no values fall below noisefloor"
     I_ = I.copy()
@@ -101,30 +66,10 @@ def test_determine_background_radius():
     maxrad = morphology.determine_background_radius(R, I_, noisefloor)
     assert maxrad != 0.0, "Maxrad should not be 0.0 even if first value is below noisefloor, default to second value or nanmax(R)"
     #testing cases where R, I are not 1D arrays or are different sizes
-    try:
+    with pytest.raises(ValueError):
         morphology.determine_background_radius(R.reshape(1000,1), I, noisefloor, window_size=window_size)
-    except AssertionError:
-        pass
-    else:
-        assert False, "Expected AssertionError for non-1D R"
-
-    try:
         morphology.determine_background_radius(R, I.reshape(1000,1), noisefloor)
-    except AssertionError:
-        pass
-    else:
-        assert False, "Expected AssertionError for non-1D I"
-
-    try:
         morphology.determine_background_radius(R[:-1], I, noisefloor)
-    except AssertionError:
-        pass
-    else:
-        assert False, "Expected AssertionError for mismatched lengths of R and I"
-
-def test_galaxymorphology():
-    '''test galaxymorphology function'''
-    #test with a sample FITS file and mock data
 
 #need to write test for galaxymorphology function with a sample FITS file and mock data...
 

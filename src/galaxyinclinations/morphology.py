@@ -54,7 +54,14 @@ def FindInc2(eta, A, B, C, D):
       reproduces the observed eta.
     - The function is intended for scalar inputs (not vectorized across arrays).
     """
-    
+    # Validate inputs explicitly (use exceptions rather than `assert` so checks
+    # remain active even if Python is run with optimizations (-O)).
+    finite_checks = [np.isfinite(eta), np.isfinite(A), np.isfinite(B), np.isfinite(C), np.isfinite(D)]
+    if not all(finite_checks):
+        raise ValueError("All inputs must be finite scalars")
+    scalar_checks = [np.isscalar(eta), np.isscalar(A), np.isscalar(B), np.isscalar(C), np.isscalar(D)]
+    if not all(scalar_checks):
+        raise ValueError("All inputs must be scalar values")
     if eta>0.5:
         inc=90
     else:
@@ -120,11 +127,16 @@ def determine_background_radius(R, I, noisefloor, window_size=100):
     """
     assert isinstance(R, np.ndarray), "R must be a numpy array"
     assert isinstance(I, np.ndarray), "I must be a numpy array"
-    assert R.ndim == I.ndim == 1, "R and I must be 1D arrays"
-    assert len(R) == len(I), "R and I must have the same length"
-    assert np.nanmin(R) >= 0, "R must be exclusively non-negative values"
-    assert window_size > 0 and isinstance(window_size, int), "window_size must be a positive integer"
-    assert window_size <= len(R), "window_size must be less than or equal to the length of R and I"
+    if R.ndim != 1 or I.ndim != 1:
+        raise ValueError("R and I must be 1D arrays")
+    if len(R) != len(I):
+        raise ValueError("R and I must have the same length")
+    if np.nanmin(R) < 0:
+        raise ValueError("R must be exclusively non-negative values")
+    if not isinstance(window_size, int) or window_size <= 0:
+        raise ValueError("window_size must be a positive integer")
+    if window_size > len(R):
+        raise ValueError("window_size must be less than or equal to the length of R and I")
 
     # sort by radius for fit
     rindx = R.argsort()
