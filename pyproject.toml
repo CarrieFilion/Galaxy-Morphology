@@ -4,7 +4,8 @@ requires = [
   "setuptools_scm>=8",
   "wheel",
   "numpy>=1.17,<2.0",
-  "astropy"
+  "astropy>=7.1.1",
+  "flex@https://github.com/ObservationalExpansions/flex.git"
 ]
 build-backend = "setuptools.build_meta"
 
@@ -21,7 +22,7 @@ dependencies = [
   "scipy>=1.9,<2.0",
   "astropy>=7.1.1",
   "scipy>=1.16.3",
-  "flex"
+  "flex@https://github.com/ObservationalExpansions/flex.git"
 ]
 keywords = ["python","basis functions"]
 classifiers = [
